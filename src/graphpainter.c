@@ -36,10 +36,8 @@ static void init_vertices_pos(int n, Vector2 vertices_pos[n]) {
 
 static void init_color(int chroma_index, Color colors[chroma_index]) {
     for(int i = 0; i < chroma_index; i++) {
-        colors[i].r = random_char();
-        colors[i].g = random_char();
-        colors[i].b = random_char();
-        colors[i].a = 255;
+        float hue = i * (360 / chroma_index);
+        colors[i] = ColorFromHSV(hue, 1.0, 1.0);
     }
 }
 

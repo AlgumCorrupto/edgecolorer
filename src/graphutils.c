@@ -217,7 +217,7 @@ int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
     int chroma = backtrack_edge_coloring(0, m, max_colors, edge_adj, edge_colors,
                                          -1, &best_max_found, best_coloring);
 
-    // copy best coloring back to edge_colors for drawing
+    // copiar a melhor coloração para desenho
     for (int i = 0; i < m; i++)
         edge_colors[i] = best_coloring[i];
 
@@ -225,74 +225,3 @@ int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
 }
 
 
-// algoritmo guloso para coloração
-// out = cor das arestas
-static void color(int p, int m, char adj[m][m], int out[m], int* chromatic_index) {
-    int adj_colors[m];
-    for(int i = 0; i < m; i++)
-        adj_colors[i] = -1;
-
-    // pegando as cores de todos os nós adjacentes
-    for(int i = 0; i < m; i++) {
-        if(adj[p][i] && out[i] != -1) {
-            push(m, adj_colors, out[i]);
-        }
-    }
-
-    // iterando sobre as todas as cores já utilizadas
-    // caso ela não for adjacente: atribui-la para o nó atual
-    // caso todas forem adjacentes, incrementar o índice cromático
-    for(int col = 0; col < m; col++) {
-        if(!in(m, adj_colors, col)) {
-            out[p] = col;
-
-            if(col > *chromatic_index)
-                *chromatic_index = col;
-
-            return;
-        }
-    }
-}
-
-// basicamente um bfs modificado que percorre o grafo 
-// e o coloriza.
-// Me dá resultados ruins com grafos completos
-// out = cor das arestas
-int color_edges(int m, char adj[m][m], int out[m]) {
-    // inicializando o vetor de saída
-    for(int i=0;i<m;i++)
-        out[i] = -1;
-
-    int visited[m];
-    memset(visited, 0, sizeof(visited));
-    int start;
-    int chromatic_index = 0;
-
-    // enquanto houver subgrafos disconexos
-    // não visitados
-    while((start = search(m, visited, 0)) != -1) {
-        QueueHeader queue_header = {
-            0, // tamanho
-            m  // capacidade
-        };
-
-        int queue[queue_header.capacity];
-
-        visited[start] = 1;
-        enqueue(&queue_header, queue, start);
-
-        // fazer uma travessia BFS nele
-        while (queue_header.len != 0) {
-            int p = dequeue(&queue_header, queue);
-            color(p, m, adj, out, &chromatic_index); // e colorir o nó (aresta) atual
-
-            for (int i = 0; i < m; i++) {
-                if (!visited[i] && adj[p][i]) {
-                    visited[i] = 1;
-                    enqueue(&queue_header, queue, i);
-                }
-            }
-        }
-    }
-    return ++chromatic_index;
-}
