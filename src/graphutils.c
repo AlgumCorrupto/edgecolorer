@@ -29,7 +29,6 @@ void read_vertex_adj(char* filename, int n, char out[n][n]) {
     fclose(f);
 }
 
-
 // como a keyword in do python, verifica
 // a existência de certo valor num vetor
 static inline char in(int len, int vec[len], int value) {
@@ -120,7 +119,7 @@ void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
     multiply_matrix(m, n, input_transposed, n, m, input, out);
 
     // passo 2:
-    // remover auto adjências 
+    // remover auto adjências
     // e colocar '1' uma adjacência nos adjacentes
     for(int i = 0; i < m; i++) {
        for(int j = 0; j < m; j++) {
@@ -175,10 +174,10 @@ static void color(int p, int m, char adj[m][m], int out[m], int* chromatic_index
     for(int col = 0; col < m; col++) {
         if(!in(m, adj_colors, col)) {
             out[p] = col;
-    
+
             if(col > *chromatic_index)
                 *chromatic_index = col;
-    
+
             return;
         }
     }
