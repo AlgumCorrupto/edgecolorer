@@ -154,6 +154,77 @@ static int dequeue(QueueHeader* h, int queue[]) {
     return val;
 }
 
+static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m], int c) {
+    for (int i = 0; i < m; i++) {
+        if (edge_adj[e][i] && edge_colors[i] == c)
+            return 0;
+    }
+    return 1;
+}
+
+static int backtrack_edge_coloring(int e, int m, int max_colors,
+                                   char edge_adj[m][m], int edge_colors[m],
+                                   int current_max, int *best_max_found,
+                                   int best_coloring[m]) {
+    if (e == m) {
+        // copy current coloring to best_coloring
+        for (int i = 0; i < m; i++)
+            best_coloring[i] = edge_colors[i];
+        return current_max;
+    }
+
+    int best_max = -1;
+
+    for (int c = 0; c < max_colors; c++) {
+        if (can_color_edge(e, m, edge_adj, edge_colors, c)) {
+            edge_colors[e] = c;
+            int new_max = (c > current_max) ? c : current_max;
+
+            if (*best_max_found != -1 && new_max >= *best_max_found) {
+                edge_colors[e] = -1;
+                continue;
+            }
+
+            int result = backtrack_edge_coloring(e + 1, m, max_colors,
+                                                edge_adj, edge_colors,
+                                                new_max, best_max_found,
+                                                best_coloring);
+            if (result != -1 && (best_max == -1 || result < best_max)) {
+                best_max = result;
+                *best_max_found = result;
+            }
+
+            edge_colors[e] = -1; // backtrack only for unsuccessful paths
+        }
+    }
+
+    return best_max;
+}
+
+int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
+    int best_coloring[m];
+    for (int i = 0; i < m; i++) edge_colors[i] = -1;
+
+    int max_colors = 0;
+    for (int i = 0; i < m; i++) {
+        int deg = 0;
+        for (int j = 0; j < m; j++) deg += edge_adj[i][j];
+        if (deg > max_colors) max_colors = deg;
+    }
+    max_colors += 1;
+
+    int best_max_found = -1;
+    int chroma = backtrack_edge_coloring(0, m, max_colors, edge_adj, edge_colors,
+                                         -1, &best_max_found, best_coloring);
+
+    // copy best coloring back to edge_colors for drawing
+    for (int i = 0; i < m; i++)
+        edge_colors[i] = best_coloring[i];
+
+    return chroma + 1;
+}
+
+
 // algoritmo guloso para coloração
 // out = cor das arestas
 static void color(int p, int m, char adj[m][m], int out[m], int* chromatic_index) {
