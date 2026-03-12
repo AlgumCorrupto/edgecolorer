@@ -24,9 +24,8 @@ int main(int argc, char** argv) {
    char edge_adj[header.m][header.m];
    make_edge_adj_from_inc(header.n, header.m, incidence, edge_adj);
 
-   // algoritmo principal de coloração
    int edge_colors[header.m];
-   int chroma_index = color_edges(header.m, edge_adj, edge_colors);
+   int chroma_index = edge_coloring(header.n, header.m, incidence, edge_colors);
 
    // finalmente desenhando o grafo com raylib
    draw_graph(header.n, header.m, incidence, edge_colors, chroma_index);

@@ -98,7 +98,7 @@ void draw_graph(int n, int m, char incidence[n][m], int edge_colors[m], int chro
     SetConfigFlags(FLAG_MSAA_4X_HINT); // anti aliasing
     SetConfigFlags(FLAG_WINDOW_RESIZABLE); // auto explicativo
     InitWindow(SIZE * (16/9), SIZE, "Edger");
-    //SetTargetFPS(60);
+    SetTargetFPS(60);
 
     // importante para init_node_pos
     // e init_color
