@@ -1,5 +1,6 @@
 /*
 *  Coloração de Arestas -- Arquivo principal
+*  Paulo Artur Villaça
 */ 
 #include <graphutils.h>
 #include <graphpainter.h>

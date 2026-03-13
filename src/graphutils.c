@@ -36,7 +36,9 @@ void read_vertex_adj(char* filename, int n, char out[n][n]) {
     fclose(f);
 }
 
-static void transpose(int rows, int columns, char input[rows][columns], char out[columns][rows]) {
+static void transpose(int rows, int columns, 
+                      char input[rows][columns], 
+                      char out[columns][rows]) {
    for(int i = 0; i < rows; i++)
        for(int j = 0; j < columns; j++)
          out[j][i] = input[i][j]; // auto explicativo
@@ -46,7 +48,9 @@ static void transpose(int rows, int columns, char input[rows][columns], char out
 // c = column
 // mat = matrix
 // res = saída
-void multiply_matrix(int r1, int c1, char mat1[r1][c1], int r2, int c2, char mat2[r2][c2], char res[r1][c2]) {
+void multiply_matrix(int r1, int c1, char mat1[r1][c1], 
+                     int r2, int c2, char mat2[r2][c2], 
+                     char res[r1][c2]) {
     for (int i = 0; i < r1; i++) {
         for (int j = 0; j < c2; j++) {
             res[i][j] = 0;
@@ -82,7 +86,10 @@ void make_incidence(int n, int m, char input[n][n], char out[n][m]) {
 
 // input = matriz de incidência
 // out =  matriz de adjacência (aresta)
-void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
+void make_edge_adj_from_inc(int n, 
+                            int m, 
+                            char input[n][m], 
+                            char out[m][m]) {
     // passo 1: multiplicar a transposta pela original
     char input_transposed[m][n];
     transpose(n, m, input, input_transposed);
@@ -107,7 +114,11 @@ void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
 // com cor "c".
 // Ou seja, retorna 0 caso c já seja adjacente
 // com a cor "c"
-static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m], int c) {
+static int can_color_edge(int e, 
+                          int m, 
+                          char edge_adj[m][m], 
+                          int edge_colors[m], 
+                          int c) {
     for (int i = 0; i < m; i++) {
         if (edge_adj[e][i] && edge_colors[i] == c)
             return 0;

@@ -114,7 +114,10 @@ static BoundingBox compute_bounding_box(int n, Vector2 vertices[n]) {
 
 // Normalizar um conjunto de coordenadas
 // para dentro de uma BoundingBox
-static void normalize_vertices(int n, Vector2 vertices[n], BoundingBox box, float target_min, float target_max) {
+static void normalize_vertices(int n, 
+                               Vector2 vertices[n],
+                               BoundingBox box, 
+                               float target_min, float target_max) {
     float scale_x = box.max.x - box.min.x;
     float scale_y = box.max.y - box.min.y;
     float target_size = target_max - target_min;
@@ -127,7 +130,9 @@ static void normalize_vertices(int n, Vector2 vertices[n], BoundingBox box, floa
 
 // Layout baseado nas leis de hooke
 // https://en.wikipedia.org/wiki/Force-directed_graph_drawing
-static void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]) {
+static void init_vertex_pos(int n, int m, 
+                            char incidence[n][m], 
+                            Vector2 vertices_pos[n]) {
     #define MAX_ITERATION 10000
     #define DAMPING 0.9f
     #define STIFFNESS 0.01f
