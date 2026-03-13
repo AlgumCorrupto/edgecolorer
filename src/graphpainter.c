@@ -34,11 +34,6 @@ inline static unsigned char random_char() {
     return (unsigned char)rand();
 }
 
-static void init_vertices_pos(int n, Vector2 vertices_pos[n]) {
-    for(int i = 0; i < n; i++)
-        vertices_pos[i] = (Vector2){random_float(), random_float()};
-}
-
 static void init_color(int chroma_index, Color colors[chroma_index]) {
     for(int i = 0; i < chroma_index; i++) {
         float hue = i * (360 / chroma_index);
@@ -95,29 +90,68 @@ static void draw_edges(
     }
 }
 
+
+
+// computar bounding box das vértices
+// NOTE: eu sei que BB tem 3 valores XYZ
+// Mas não estou utilizando o Z, então praq
+// inicializar?
+BoundingBox compute_bounding_box(int n, Vector2 vertices[n]) {
+    BoundingBox box;
+    box.min.x = box.max.x = vertices[0].x;
+    box.min.y = box.max.y = vertices[0].y;
+
+    for (int i = 1; i < n; i++) {
+        if (vertices[i].x < box.min.x) box.min.x = vertices[i].x;
+        if (vertices[i].x > box.max.x) box.max.x = vertices[i].x;
+        if (vertices[i].y < box.min.y) box.min.y = vertices[i].y;
+        if (vertices[i].y > box.max.y) box.max.y = vertices[i].y;
+    }
+    return box;
+}
+
+// Normalizar um conjunto de coordenadas
+// para dentro de uma BoundingBox
+void normalize_vertices(int n, Vector2 vertices[n], BoundingBox box, float target_min, float target_max) {
+    float scale_x = box.max.x - box.min.x;
+    float scale_y = box.max.y - box.min.y;
+    float target_size = target_max - target_min;
+
+    for (int i = 0; i < n; i++) {
+        vertices[i].x = target_min + ((vertices[i].x - box.min.x) / scale_x) * target_size;
+        vertices[i].y = target_min + ((vertices[i].y - box.min.y) / scale_y) * target_size;
+    }
+}
+
+// Layout baseado nas leis de hooke
 void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]) {
     #define MAX_ITERATION 100
     #define DAMPING 0.9f
     #define STIFFNESS 0.01f
     #define REPULSION 0.5f
     #define EDGE_LENGTH 1.0f
+    #define PADDING 0.25
 
     Vector2 velocities[n];
     memset(vertices_pos, 0, sizeof(Vector2) * n);
     memset(velocities, 0, sizeof(velocities));
 
-    // Initialize positions randomly in [-0.5, 0.5]
+    // Initialize positions randomly [-0.5, 0.5]
+    // inicializar as posições dos vetores aleatóriamente
+    // entre [-.5, .5]
     for (int i = 0; i < n; i++) {
         vertices_pos[i].x = ((float)rand() / RAND_MAX) - 0.5f;
         vertices_pos[i].y = ((float)rand() / RAND_MAX) - 0.5f;
     }
 
-    // --- Force-directed iterations ---
+    // fazendo o sistema de simulação
     for (int iter = 0; iter < MAX_ITERATION; iter++) {
         Vector2 forces[n];
         memset(forces, 0, sizeof(forces));
 
-        // Repulsive forces
+        // para cada vértice
+        // aplicar uma força que
+        // repele os outros vértices
         for (int a = 0; a < n; a++) {
             for (int b = a + 1; b < n; b++) {
                 float dx = vertices_pos[b].x - vertices_pos[a].x;
@@ -132,7 +166,11 @@ void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]
             }
         }
 
-        // Attractive forces along edges
+        // para cada aresta
+        // "puxar" seus vértices
+        // incidentes para mais perto
+        // as arestas basicamente
+        // funcionam como uma suspensão
         for (int e = 0; e < m; e++) {
             int v1 = -1, v2 = -1;
             for (int v = 0; v < n; v++) {
@@ -157,7 +195,7 @@ void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]
             }
         }
 
-        // Update velocities and positions
+        // finalmente integrar as velocidades
         for (int v = 0; v < n; v++) {
             velocities[v].x = (velocities[v].x + forces[v].x) * DAMPING;
             velocities[v].y = (velocities[v].y + forces[v].y) * DAMPING;
@@ -167,31 +205,12 @@ void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]
         }
     }
 
-    // --- Compute bounding box ---
-    float min_x = vertices_pos[0].x, max_x = vertices_pos[0].x;
-    float min_y = vertices_pos[0].y, max_y = vertices_pos[0].y;
-    for (int i = 1; i < n; i++) {
-        if (vertices_pos[i].x < min_x) min_x = vertices_pos[i].x;
-        if (vertices_pos[i].x > max_x) max_x = vertices_pos[i].x;
-        if (vertices_pos[i].y < min_y) min_y = vertices_pos[i].y;
-        if (vertices_pos[i].y > max_y) max_y = vertices_pos[i].y;
-    }
-
-    float scale_x = max_x - min_x;
-    float scale_y = max_y - min_y;
-
+    // colocar todas as vértices na mesma viewport
+    BoundingBox box = compute_bounding_box(n, vertices_pos);
     float target_min = -1.0f + PADDING;
-    float target_max =  1.0f - PADDING;
-
-    float target_size = target_max - target_min;
-
-    // --- Normalize to [-1 + padding, 1 - padding] ---
-    for (int i = 0; i < n; i++) {
-        vertices_pos[i].x = target_min + ((vertices_pos[i].x - min_x) / scale_x) * target_size;
-        vertices_pos[i].y = target_min + ((vertices_pos[i].y - min_y) / scale_y) * target_size;
-    }
+    float target_max = 1.0f - PADDING;
+    normalize_vertices(n, vertices_pos, box, target_min, target_max);
 }
-
 
 void draw_graph(int n, int m, char incidence[n][m], int edge_colors[m], int chroma_index) {
     // inicializando o raylib

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g -O0 -I./include
+CFLAGS = -Wall -O4 -I./include
 LDFLAGS = -L./lib -l:libraylib.a -lm
 
 APP = edger
