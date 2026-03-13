@@ -1,10 +1,13 @@
+/*
+*  Coloração de Arestas -- Arquivo principal
+*/ 
 #include <graphutils.h>
 #include <graphpainter.h>
 #include <string.h>
 
 int main(int argc, char** argv) {
    // lendo o header primeiro
-   char filename[67];
+   char filename[255];
    memset(filename, 0, sizeof(filename));
    strcpy(filename, argv[1]);
    GraphHeader header = read_header(filename);

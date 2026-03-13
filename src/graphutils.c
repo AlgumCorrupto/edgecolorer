@@ -1,3 +1,8 @@
+/* 
+* Coloração de arestas -- Operações com o grafo
+* Paulo Artur Villaça
+*/
+
 #include <graphutils.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,36 +34,6 @@ void read_vertex_adj(char* filename, int n, char out[n][n]) {
     }
 
     fclose(f);
-}
-
-// como a keyword in do python, verifica
-// a existência de certo valor num vetor
-static inline char in(int len, int vec[len], int value) {
-   for(int i = 0; i < len; i++) {
-      if(vec[i] ==  value) return 1;
-   }
-   return 0;
-}
-
-// caso o valor for achado, retorna seu índice no vetor
-// caso contrário retorna -1
-static inline int search(int len, int vec[len], int value) {
-   for(int i = 0; i < len; i++) {
-      if(vec[i] ==  value) return i;
-   }
-   return -1;
-}
-
-// dado um vetor em que nil é representado como -1
-// essa função insere um valor como se fosse
-// uma pilha
-static inline char push(int len, int vec[len], int value) {
-   for(int i  = 0; i < len; i++) 
-      if(vec[i] == -1) {
-         vec[i] =  value;
-         return 1;
-      }
-   return 0;
 }
 
 static void transpose(int rows, int columns, char input[rows][columns], char out[columns][rows]) {
@@ -126,218 +101,103 @@ void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
     }
 }
 
-// uma implementação primitiva de uma
-// fila
-//typedef struct {
-//    int len;
-//    int capacity;
-//} QueueHeader;
 
-//static void enqueue(QueueHeader* h, int queue[], int val) {
-//    if (h->len == h->capacity) return;
-//
-//    for (int i = h->len - 1; i >= 0; i--) {
-//        queue[i + 1] = queue[i];
-//    }
-//    queue[0] = val;
-//    h->len++;
-//}
-//
-//static int dequeue(QueueHeader* h, int queue[]) {
-//    int val = queue[h->len - 1];
-//    h->len--;
-//    return val;
-//}
-
-// algoritmo guloso para coloração
-// out = cor das arestas
-//static void color(int p, int m, char adj[m][m], int out[m], int* chromatic_index) {
-//    int adj_colors[m];
-//    for(int i = 0; i < m; i++)
-//        adj_colors[i] = -1;
-//
-//    // pegando as cores de todos os nós adjacentes
-//    for(int i = 0; i < m; i++) {
-//        if(adj[p][i] && out[i] != -1) {
-//            push(m, adj_colors, out[i]);
-//        }
-//    }
-//
-//    // iterando sobre as todas as cores já utilizadas
-//    // caso ela não for adjacente: atribui-la para o nó atual
-//    // caso todas forem adjacentes, incrementar o índice cromático
-//    for(int col = 0; col < m; col++) {
-//        if(!in(m, adj_colors, col)) {
-//            out[p] = col;
-//
-//            if(col > *chromatic_index)
-//                *chromatic_index = col;
-//
-//            return;
-//        }
-//    }
-//}
-
-int get_max_degree(int n, int m, char incidence[n][m]) {
-    int max  = 0;
-    for(int i = 0; i< n; i++) {
-        int curr = 0;
-        for(int j = 0; j < m; j++) {
-            curr += incidence[i][j];
-        }
-        if(curr > max) max = curr;
-    }
-    return max;
-}
-
-int count_unique(int m, int colors[m]) {
-    int buffer[m];
-    for(int i=0; i < m; i++) buffer[i] = -1;
-    int qtd = 0;
-    for(int i = 0; i < m; i++) {
-        if(colors[i] != -1 && !in(m, buffer, colors[i])) {
-            push(m, buffer, colors[i]);
-            qtd++;
-        }
-    }
-    return qtd;
-}
-
-int least_common(int m, int colors[m]) {
-    int counts[m];
-
-    for (int i = 0; i < m; i++)
-        counts[i] = 0;
-
+// retorna 1 se aresta "e" 
+// pode ser colorida
+// com cor "c".
+// Ou seja, retorna 0 caso c já seja adjacente
+// com a cor "c"
+static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m], int c) {
     for (int i = 0; i < m; i++) {
-        if (colors[i] != -1)
-            counts[colors[i]]++;
+        if (edge_adj[e][i] && edge_colors[i] == c)
+            return 0;
     }
-
-    int min_color = -1;
-    int min_count = 0;
-
-    for (int c = 0; c < m; c++) {
-        if (counts[c] > 0 && (min_color == -1 || counts[c] < min_count)) {
-            min_color = c;
-            min_count = counts[c];
-        }
-    }
-
-    return min_color;
+    return 1;
 }
 
+// algoritmo greedy para coloração com backtracking
+// imagino que não seja ideal
+// mas ele funciona para os grafos que testei
+static int backtrack_edge_coloring(int e, int m, int max_colors,
+                                   char edge_adj[m][m], int edge_colors[m],
+                                   int current_max, int *best_max_found,
+                                   int best_coloring[m]) {
 
-typedef struct {
-    int n;
-    int m;
-} PartitionGraph;
-
-typedef struct {
-    PartitionGraph g1;
-    PartitionGraph g2;
-} PartitionHeader;
-
-void compute_degrees(int n, int m, char incidence[n][m], int degrees[n]) {
-    memset(degrees, 0, sizeof(int) * n);
-    for(int i = 0; i < n; i++) {
-        for(int j = 0; j < m; j++) { 
-            degrees[i] += incidence[i][j];
-        }
+    // caso todas as arestas forem coloridas
+    // apenas retorne
+    // (caso base)
+    if (e == m) {
+        for (int i = 0; i < m; i++)
+            best_coloring[i] = edge_colors[i];
+        return current_max;
     }
-}
 
-void build_subgraphs(int n, int m, char G[n][m], 
-                     char edge_subgraph[m],
-                     int n1, int m1, char G1[n1][m1],
-                     int n2, int m2, char G2[n2][m2]) {
-    
-    memset(G1, 0, sizeof(char) * n1 * m1);
-    memset(G2, 0, sizeof(char) * n2 * m2);
+    int best_max = -1;
 
-    // Track where to put next edge in each subgraph
-    int next_edge_in_G1 = 0;
-    int next_edge_in_G2 = 0;
-    
-    // Distribute edges to subgraphs
-    for (int edge = 0; edge < m; edge++) {
-        if (edge_subgraph[edge] == 0) {
-            // This edge goes to G1
-            for (int vertex = 0; vertex < n; vertex++) {
-                G1[vertex][next_edge_in_G1] = G[vertex][edge];
+    for (int c = 0; c < max_colors; c++) {
+        // testar todas as cores disponíveis para essa aresta
+        if (can_color_edge(e, m, edge_adj, edge_colors, c)) {
+            edge_colors[e] = c;
+            int new_max = (c > current_max) ? c : current_max;
+
+            // Se a melhor quantidade de cores foi definida
+            // e foi mecessário utilizar mais cores que a melhor
+            // quantidade, descolorir essa aresta, pois essa 
+            // coloração não é ideal.
+            if (*best_max_found != -1 && new_max >= *best_max_found) {
+                edge_colors[e] = -1;
+                continue;
             }
-            next_edge_in_G1++;
-        } else {
-            // This edge goes to G2
-            for (int vertex = 0; vertex < n; vertex++) {
-                G2[vertex][next_edge_in_G2] = G[vertex][edge];
+
+            int result = backtrack_edge_coloring(e + 1, m, max_colors,
+                                                edge_adj, edge_colors,
+                                                new_max, best_max_found,
+                                                best_coloring);
+
+            // se o resultado da chamada recursiva for válido
+            // e a coloração for melhor que a atual,
+            // salva-la
+            if (result != -1 && (best_max == -1 || result < best_max)) {
+                best_max = result;
+                *best_max_found = result;
             }
-            next_edge_in_G2++;
+
+            edge_colors[e] = -1; // backtrack only for unsuccessful paths
         }
     }
-    
-    // Note: We assume m1 = ceil(m/2) and m2 = floor(m/2) from the caller
-    // The loops above will fill exactly m1 edges in G1 and m2 edges in G2
+
+    return best_max;
 }
 
-int find_endpoint_with_odd_degree(int n, int m, char G[n][m], int degree[n], int edge) {
-    // Find the two endpoints of this edge
-    int endpoints[2];
-    int endpoint_count = 0;
-    
-    for (int vertex = 0; vertex < n; vertex++) {
-        if (G[vertex][edge] == 1) {
-            endpoints[endpoint_count] = vertex;
-            endpoint_count++;
-            if (endpoint_count == 2) break;
-        }
-    }
-    
-    // Check which endpoint has odd degree
-    // The algorithm states: "every odd-degree vertex is the endpoint of exactly one tour"
-    // So we want to start tours at odd-degree vertices
-    if (degree[endpoints[0]] % 2 == 1) {
-        return endpoints[0];
-    } else if (degree[endpoints[1]] % 2 == 1) {
-        return endpoints[1];
-    } else {
-        // If both endpoints have even degree, we can start from either
-        // But according to the algorithm, no even-degree vertex should be an endpoint
-        // So this case shouldn't occur if we're starting a new tour correctly
-        return endpoints[0];  // Default to first endpoint
-    }
-}
+// API pública para coloração
+int color_edges(int m, char edge_adj[m][m], int edge_colors[m]) {
+    int best_coloring[m]; // matriz que contém as cores das arestas
+    for (int i = 0; i < m; i++) edge_colors[i] = -1;
 
-int find_next_edge_in_tour(int n, int m, char G[n][m], char edge_used[m], int current_edge) {
-    // Find the two endpoints of the current edge
-    int endpoints[2];
-    int endpoint_count = 0;
-
-    for (int vertex = 0; vertex < n; vertex++) {
-        if (G[vertex][current_edge] == 1) {
-            endpoints[endpoint_count] = vertex;
-            endpoint_count++;
-            if (endpoint_count == 2) break;
-        }
+    // pegando o grau máximo
+    int max_colors = 0;
+    for (int i = 0; i < m; i++) {
+        int deg = 0;
+        for (int j = 0; j < m; j++) deg += edge_adj[i][j];
+        if (deg > max_colors) max_colors = deg;
     }
 
-    // Try to find an unused edge incident to either endpoint
-    // We need to track which vertex we came from, but since we don't have that info,
-    // we'll need to be careful in the main algorithm to pass the "from vertex"
+    // calculando o pior caso
+    // q é o grau máximo + 1
+    // de acordo com o teorema de vizing
+    max_colors += 1;
 
-    // For now, let's assume we're at the first endpoint and look for edges there
-    for (int vertex_idx = 0; vertex_idx < 2; vertex_idx++) {
-        int current_vertex = endpoints[vertex_idx];
+    int best_max_found = -1;
 
-        // Look for any unused edge incident to this vertex that isn't the current edge
-        for (int edge = 0; edge < m; edge++) {
-            if (!edge_used[edge] && edge != current_edge && G[current_vertex][edge] == 1) {
-                return edge;
-            }
-        }
-    }
+    // começar pela aresta de índice 0
+    int chroma = backtrack_edge_coloring(0, m, max_colors, edge_adj, edge_colors,
+                                         -1, &best_max_found, best_coloring);
 
-    return -1;  // No next edge found (tour is complete)
+    // copiar a melhor coloração para ser desenhada
+    for (int i = 0; i < m; i++)
+        edge_colors[i] = best_coloring[i];
+
+    return chroma + 1;
 }
 
 void partition(int n, int m, char G[n][m],
