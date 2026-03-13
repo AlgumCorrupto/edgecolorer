@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
    char edge_adj[header.m][header.m];
    make_edge_adj_from_inc(header.n, header.m, incidence, edge_adj);
 
+   // colorindo as arestas
    int edge_colors[header.m];
    int chroma_index = color_edges(header.m, edge_adj, edge_colors);
 
@@ -36,3 +37,4 @@ int main(int argc, char** argv) {
 
    return 0;
 }
+
