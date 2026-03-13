@@ -1,7 +1,11 @@
+/* 
+* Coloração de arestas -- Operações com o grafo
+* Paulo Artur Villaça
+*/
+
 #include <graphutils.h>
 #include <stdio.h>
 #include <string.h>
-
 
 // ler a primeira linha (header)
 // do arquivo de entrada
@@ -96,8 +100,11 @@ void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
 }
 
 
-// retorna 1 se aresta "e" pode ser colorida
-// com cor "c"
+// retorna 1 se aresta "e" 
+// pode ser colorida
+// com cor "c".
+// Ou seja, retorna 0 caso c já seja adjacente
+// com a cor "c"
 static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m], int c) {
     for (int i = 0; i < m; i++) {
         if (edge_adj[e][i] && edge_colors[i] == c)
@@ -106,11 +113,17 @@ static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m],
     return 1;
 }
 
-// e = aresta que vai ser utilizada como ponto de entrada
+// algoritmo greedy para coloração com backtracking
+// imagino que não seja ideal
+// mas ele funciona para os grafos que testei
 static int backtrack_edge_coloring(int e, int m, int max_colors,
                                    char edge_adj[m][m], int edge_colors[m],
                                    int current_max, int *best_max_found,
                                    int best_coloring[m]) {
+
+    // caso todas as arestas forem coloridas
+    // apenas retorne
+    // (caso base)
     if (e == m) {
         for (int i = 0; i < m; i++)
             best_coloring[i] = edge_colors[i];
@@ -120,10 +133,15 @@ static int backtrack_edge_coloring(int e, int m, int max_colors,
     int best_max = -1;
 
     for (int c = 0; c < max_colors; c++) {
+        // testar todas as cores disponíveis para essa aresta
         if (can_color_edge(e, m, edge_adj, edge_colors, c)) {
             edge_colors[e] = c;
             int new_max = (c > current_max) ? c : current_max;
 
+            // Se a melhor quantidade de cores foi definida
+            // e foi mecessário utilizar mais cores que a melhor
+            // quantidade, descolorir essa aresta, pois essa 
+            // coloração não é ideal.
             if (*best_max_found != -1 && new_max >= *best_max_found) {
                 edge_colors[e] = -1;
                 continue;
@@ -133,6 +151,10 @@ static int backtrack_edge_coloring(int e, int m, int max_colors,
                                                 edge_adj, edge_colors,
                                                 new_max, best_max_found,
                                                 best_coloring);
+
+            // se o resultado da chamada recursiva for válido
+            // e a coloração for melhor que a atual,
+            // salva-la
             if (result != -1 && (best_max == -1 || result < best_max)) {
                 best_max = result;
                 *best_max_found = result;
@@ -146,26 +168,30 @@ static int backtrack_edge_coloring(int e, int m, int max_colors,
 }
 
 // API pública para coloração
-int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
-    int best_coloring[m];
+int color_edges(int m, char edge_adj[m][m], int edge_colors[m]) {
+    int best_coloring[m]; // matriz que contém as cores das arestas
     for (int i = 0; i < m; i++) edge_colors[i] = -1;
 
-    // calculando pior caso
     // pegando o grau máximo
-    // e incrementando mais 1
     int max_colors = 0;
     for (int i = 0; i < m; i++) {
         int deg = 0;
         for (int j = 0; j < m; j++) deg += edge_adj[i][j];
         if (deg > max_colors) max_colors = deg;
     }
+
+    // calculando o pior caso
+    // q é o grau máximo + 1
+    // de acordo com o teorema de vizing
     max_colors += 1;
 
     int best_max_found = -1;
+
+    // começar pela aresta de índice 0
     int chroma = backtrack_edge_coloring(0, m, max_colors, edge_adj, edge_colors,
                                          -1, &best_max_found, best_coloring);
 
-    // copiar a melhor coloração para ser desenhado
+    // copiar a melhor coloração para ser desenhada
     for (int i = 0; i < m; i++)
         edge_colors[i] = best_coloring[i];
 

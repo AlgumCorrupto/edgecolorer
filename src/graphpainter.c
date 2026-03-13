@@ -1,3 +1,8 @@
+/* 
+* Coloração de arestas -- Desenho
+* Paulo Artur Villaça
+*/
+
 // aqui é definido como
 // o grafo deve ser desenhado,
 // se está procurando para
@@ -169,6 +174,7 @@ static void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices
         // funcionam como uma suspensão
         for (int e = 0; e < m; e++) {
             int v1 = -1, v2 = -1;
+            // pegando as vértices incidentes
             for (int v = 0; v < n; v++) {
                 if (incidence[v][e]) {
                     if (v1 == -1) v1 = v;
@@ -176,14 +182,19 @@ static void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices
                 }
             }
             if (v1 != -1 && v2 != -1) {
+                // deltas
                 float dx = vertices_pos[v2].x - vertices_pos[v1].x;
                 float dy = vertices_pos[v2].y - vertices_pos[v1].y;
-                float dist = sqrtf(dx*dx + dy*dy) + 0.0001f;
-                float f = STIFFNESS * (dist - EDGE_LENGTH);
 
+                float dist = sqrtf(dx*dx + dy*dy) + 0.0001f; // magnitude
+                float f = STIFFNESS * (dist - EDGE_LENGTH);  // lei de hooke
+
+                // pegando os componentes da força
                 float fx = f * dx / dist;
                 float fy = f * dy / dist;
 
+                // se (dist - EDGE_LENGTH) > 0, as vértices se aproximam
+                // caso contrário elas se repelem
                 forces[v1].x += fx;
                 forces[v1].y += fy;
                 forces[v2].x -= fx;
@@ -193,7 +204,9 @@ static void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices
 
         // finalmente integrar a posição
         for (int v = 0; v < n; v++) {
-            velocities[v].x = (velocities[v].x + forces[v].x) * DAMPING;
+            // a tendência disso aqui converger para 0 devido
+            // damping ser um número fracionário
+            velocities[v].x = (velocities[v].x + forces[v].x) * DAMPING; 
             velocities[v].y = (velocities[v].y + forces[v].y) * DAMPING;
 
             vertices_pos[v].x += velocities[v].x;
@@ -202,7 +215,7 @@ static void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices
     }
 
     // colocar todas as vértices na mesma viewport
-    BoundingBox box = compute_bounding_box(n, vertices_pos);
+    BoundingBox box = compute_bounding_box(n, vertices_pos); // x, y mas não z
     float target_min = -1.0f + PADDING;
     float target_max = 1.0f - PADDING;
     normalize_vertices(n, vertices_pos, box, target_min, target_max);

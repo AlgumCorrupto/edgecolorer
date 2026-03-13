@@ -1,10 +1,13 @@
+/*
+*  Coloração de Arestas -- Arquivo principal
+*/ 
 #include <graphutils.h>
 #include <graphpainter.h>
 #include <string.h>
 
 int main(int argc, char** argv) {
    // lendo o header primeiro
-   char filename[67];
+   char filename[255];
    memset(filename, 0, sizeof(filename));
    strcpy(filename, argv[1]);
    GraphHeader header = read_header(filename);
@@ -26,8 +29,7 @@ int main(int argc, char** argv) {
 
    // algoritmo principal de coloração
    int edge_colors[header.m];
-   //int chroma_index = color_edges(header.m, edge_adj, edge_colors);
-   int chroma_index = color_edges_backtracking(header.m, edge_adj, edge_colors);
+   int chroma_index = color_edges(header.m, edge_adj, edge_colors);
 
    // finalmente desenhando o grafo com raylib
    draw_graph(header.n, header.m, incidence, edge_colors, chroma_index);
