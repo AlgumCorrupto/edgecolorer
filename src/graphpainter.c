@@ -21,8 +21,6 @@ static const Color fg_color = (Color){255, 255, 255, 255};
 static int w;
 static int h;
 
-
-
 #define SIZE 400
 #define PADDING 0.25
 
@@ -34,6 +32,7 @@ inline static unsigned char random_char() {
     return (unsigned char)rand();
 }
 
+// https://youtu.be/Ed3GLO90FVU?si=mDrWF7VAzKJ3PIco
 static void init_color(int chroma_index, Color colors[chroma_index]) {
     for(int i = 0; i < chroma_index; i++) {
         float hue = i * (360 / chroma_index);
@@ -90,13 +89,11 @@ static void draw_edges(
     }
 }
 
-
-
 // computar bounding box das vértices
 // NOTE: eu sei que BB tem 3 valores XYZ
 // Mas não estou utilizando o Z, então praq
 // inicializar?
-BoundingBox compute_bounding_box(int n, Vector2 vertices[n]) {
+static BoundingBox compute_bounding_box(int n, Vector2 vertices[n]) {
     BoundingBox box;
     box.min.x = box.max.x = vertices[0].x;
     box.min.y = box.max.y = vertices[0].y;
@@ -112,7 +109,7 @@ BoundingBox compute_bounding_box(int n, Vector2 vertices[n]) {
 
 // Normalizar um conjunto de coordenadas
 // para dentro de uma BoundingBox
-void normalize_vertices(int n, Vector2 vertices[n], BoundingBox box, float target_min, float target_max) {
+static void normalize_vertices(int n, Vector2 vertices[n], BoundingBox box, float target_min, float target_max) {
     float scale_x = box.max.x - box.min.x;
     float scale_y = box.max.y - box.min.y;
     float target_size = target_max - target_min;
@@ -124,19 +121,18 @@ void normalize_vertices(int n, Vector2 vertices[n], BoundingBox box, float targe
 }
 
 // Layout baseado nas leis de hooke
-void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]) {
-    #define MAX_ITERATION 100
+// https://en.wikipedia.org/wiki/Force-directed_graph_drawing
+static void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]) {
+    #define MAX_ITERATION 10000
     #define DAMPING 0.9f
     #define STIFFNESS 0.01f
     #define REPULSION 0.5f
     #define EDGE_LENGTH 1.0f
-    #define PADDING 0.25
 
     Vector2 velocities[n];
     memset(vertices_pos, 0, sizeof(Vector2) * n);
     memset(velocities, 0, sizeof(velocities));
 
-    // Initialize positions randomly [-0.5, 0.5]
     // inicializar as posições dos vetores aleatóriamente
     // entre [-.5, .5]
     for (int i = 0; i < n; i++) {
@@ -168,8 +164,8 @@ void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]
 
         // para cada aresta
         // "puxar" seus vértices
-        // incidentes para mais perto
-        // as arestas basicamente
+        // incidentes para mais perto.
+        // As arestas basicamente
         // funcionam como uma suspensão
         for (int e = 0; e < m; e++) {
             int v1 = -1, v2 = -1;
@@ -195,7 +191,7 @@ void init_vertex_pos(int n, int m, char incidence[n][m], Vector2 vertices_pos[n]
             }
         }
 
-        // finalmente integrar as velocidades
+        // finalmente integrar a posição
         for (int v = 0; v < n; v++) {
             velocities[v].x = (velocities[v].x + forces[v].x) * DAMPING;
             velocities[v].y = (velocities[v].y + forces[v].y) * DAMPING;
@@ -216,12 +212,11 @@ void draw_graph(int n, int m, char incidence[n][m], int edge_colors[m], int chro
     // inicializando o raylib
     SetTraceLogLevel(LOG_NONE); // calando a boca do raylib
     SetConfigFlags(FLAG_MSAA_4X_HINT); // anti aliasing
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE); // auto explicativo
-    InitWindow(SIZE * (16/9), SIZE, "Edger");
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE); // janela pode mudar de tamanho
+    InitWindow(SIZE * (16/9), SIZE, "Edger"); // aspect ratio 16:9 por p'':adrão
     SetTargetFPS(60);
 
-    // importante para init_node_pos
-    // e init_color
+    // importante para init_vertex_pos
     srand(time(NULL));
 
     Vector2 vertices_pos[n];
