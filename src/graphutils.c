@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
+
 // ler a primeira linha (header)
 // do arquivo de entrada
 GraphHeader read_header(char* filename) {
@@ -27,43 +28,6 @@ void read_vertex_adj(char* filename, int n, char out[n][n]) {
     }
 
     fclose(f);
-}
-
-// como a keyword in do python, verifica
-// a existência de certo valor num vetor
-static inline char in(int len, int vec[len], int value) {
-   for(int i = 0; i < len; i++) {
-      if(vec[i] ==  value) return 1;
-   }
-   return 0;
-}
-
-// caso o valor for achado, retorna seu índice no vetor
-// caso contrário retorna -1
-static inline int search(int len, int vec[len], int value) {
-   for(int i = 0; i < len; i++) {
-      if(vec[i] ==  value) return i;
-   }
-   return -1;
-}
-
-// dado um vetor em que nil é representado como -1
-// essa função insere um valor como se fosse
-// uma pilha
-static inline char push(int len, int vec[len], int value) {
-   for(int i  = 0; i < len; i++) 
-      if(vec[i] == -1) {
-         vec[i] =  value;
-         return 1;
-      }
-   return 0;
-}
-
-// não utilizado
-static inline int clamp(int min, int max, int val) {
-   if(val > max) return max;
-   if(val < min) return min;
-   return val;
 }
 
 static void transpose(int rows, int columns, char input[rows][columns], char out[columns][rows]) {
@@ -131,28 +95,7 @@ void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
     }
 }
 
-// uma implementação primitiva de uma
-// fila
-typedef struct {
-    int len;
-    int capacity;
-} QueueHeader;
 
-static void enqueue(QueueHeader* h, int queue[], int val) {
-    if (h->len == h->capacity) return;
-
-    for (int i = h->len - 1; i >= 0; i--) {
-        queue[i + 1] = queue[i];
-    }
-    queue[0] = val;
-    h->len++;
-}
-
-static int dequeue(QueueHeader* h, int queue[]) {
-    int val = queue[h->len - 1];
-    h->len--;
-    return val;
-}
 
 static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m], int c) {
     for (int i = 0; i < m; i++) {
@@ -162,12 +105,12 @@ static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m],
     return 1;
 }
 
+// e = aresta que vai ser utilizada como ponto de entrada
 static int backtrack_edge_coloring(int e, int m, int max_colors,
                                    char edge_adj[m][m], int edge_colors[m],
                                    int current_max, int *best_max_found,
                                    int best_coloring[m]) {
     if (e == m) {
-        // copy current coloring to best_coloring
         for (int i = 0; i < m; i++)
             best_coloring[i] = edge_colors[i];
         return current_max;
@@ -205,6 +148,9 @@ int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
     int best_coloring[m];
     for (int i = 0; i < m; i++) edge_colors[i] = -1;
 
+    // calculando pior caso
+    // pegando o grau máximo
+    // e incrementando mais 1
     int max_colors = 0;
     for (int i = 0; i < m; i++) {
         int deg = 0;
@@ -217,11 +163,9 @@ int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
     int chroma = backtrack_edge_coloring(0, m, max_colors, edge_adj, edge_colors,
                                          -1, &best_max_found, best_coloring);
 
-    // copiar a melhor coloração para desenho
+    // copiar a melhor coloração para ser desenhado
     for (int i = 0; i < m; i++)
         edge_colors[i] = best_coloring[i];
 
     return chroma + 1;
 }
-
-
