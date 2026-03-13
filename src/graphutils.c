@@ -96,7 +96,8 @@ void make_edge_adj_from_inc(int n, int m, char input[n][m], char out[m][m]) {
 }
 
 
-
+// retorna 1 se aresta "e" pode ser colorida
+// com cor "c"
 static int can_color_edge(int e, int m, char edge_adj[m][m], int edge_colors[m], int c) {
     for (int i = 0; i < m; i++) {
         if (edge_adj[e][i] && edge_colors[i] == c)
@@ -144,6 +145,7 @@ static int backtrack_edge_coloring(int e, int m, int max_colors,
     return best_max;
 }
 
+// API pública para coloração
 int color_edges_backtracking(int m, char edge_adj[m][m], int edge_colors[m]) {
     int best_coloring[m];
     for (int i = 0; i < m; i++) edge_colors[i] = -1;
