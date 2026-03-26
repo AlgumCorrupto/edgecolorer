@@ -29,14 +29,6 @@ static int h;
 #define SIZE 400
 #define PADDING 0.25
 
-inline static float random_float() {
-    return (float)rand() / (float) RAND_MAX;
-}
-
-inline static unsigned char random_char() {
-    return (unsigned char)rand();
-}
-
 // https://youtu.be/Ed3GLO90FVU?si=mDrWF7VAzKJ3PIco
 static void init_color(int chroma_index, Color colors[chroma_index]) {
     for(int i = 0; i < chroma_index; i++) {
@@ -251,7 +243,6 @@ void draw_graph(int n, int m, char incidence[n][m], int edge_colors[m], int chro
         PollInputEvents();
         h = GetScreenHeight();
         w = GetScreenWidth();
-
         // bem auto explicativo
         BeginDrawing();
             ClearBackground(bg_color);

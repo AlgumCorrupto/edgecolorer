@@ -1,2 +1,4 @@
 obj/*
 edger
+.cache/*
+*.json

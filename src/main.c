@@ -1,7 +1,8 @@
 /*
 *  Coloração de Arestas -- Arquivo principal
 *  Paulo Artur Villaça
-*/ 
+*/
+
 #include <graphutils.h>
 #include <graphpainter.h>
 #include <string.h>
@@ -37,4 +38,3 @@ int main(int argc, char** argv) {
 
    return 0;
 }
-
