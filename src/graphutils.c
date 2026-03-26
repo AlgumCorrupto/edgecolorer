@@ -179,7 +179,7 @@ static int backtrack_edge_coloring(int e, int m, int worst_case,
 }
 
 // API pública para coloração
-int color_edges(int m, char edge_adj[m][m], int edge_colors[m]) {
+int color_edges(int m, int n, char edge_adj[m][m], char vertex_adj[n][n], int edge_colors[m]) {
     int best_coloring[m];
     int current_coloring[m];
 
@@ -187,9 +187,9 @@ int color_edges(int m, char edge_adj[m][m], int edge_colors[m]) {
 
     // pegando o grau máximo
     int worst_case = 0;
-    for (int i = 0; i < m; i++) {
+    for (int i = 0; i < n; i++) {
         int deg = 0;
-        for (int j = 0; j < m; j++) deg += edge_adj[i][j];
+        for (int j = 0; j < n; j++) deg += vertex_adj[i][j];
         if (deg > worst_case) worst_case = deg;
     }
 

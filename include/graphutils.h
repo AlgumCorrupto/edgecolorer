@@ -20,4 +20,4 @@ void make_incidence(int n, int m, char in[n][n], char out[n][m]);
 // out = matrix de adjacência das arestas gerada
 void make_edge_adj_from_inc(int n, int m, char in[n][m], char out[m][m]);
 
-int color_edges(int m, char edge_adj[m][m], int edge_colors[m]);
+int color_edges(int m, int n, char edge_adj[m][m], char vertex_adj[n][n], int edge_colors[m]);
